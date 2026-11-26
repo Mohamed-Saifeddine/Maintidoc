@@ -29,6 +29,9 @@ class Settings:
     vision_model: str = os.getenv("OLLAMA_VISION_MODEL", "qwen2.5vl:7b")
     agent_model: str = os.getenv("OLLAMA_AGENT_MODEL", "qwen3.5:9b")
     clip_model: str = os.getenv("CLIP_MODEL", "openai/clip-vit-base-patch32")
+    agent_reasoning: bool = _as_bool(os.getenv("OLLAMA_AGENT_REASONING"), False)
+    agent_num_predict: int = int(os.getenv("OLLAMA_AGENT_NUM_PREDICT", "700"))
+    agent_timeout: int = int(os.getenv("OLLAMA_AGENT_TIMEOUT", "180"))
 
     qdrant_url: str | None = os.getenv("QDRANT_URL") or None
     qdrant_api_key: str | None = os.getenv("QDRANT_API_KEY") or None

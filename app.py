@@ -120,9 +120,18 @@ with chat_tab:
         st.session_state.messages.append({"role": "user", "content": question})
         with st.chat_message("user"):
             st.markdown(question)
-        with st.chat_message("assistant"), st.spinner("Recherche et génération de la réponse…"):
+        with st.chat_message("assistant"):
+            progress_status = st.status(
+                "L'agent recherche les sources puis prépare la réponse…",
+                expanded=True,
+            )
             try:
-                result = get_agent().ask(question)
+                result = get_agent().ask(question, progress=progress_status.write)
+                progress_status.update(
+                    label="Réponse terminée",
+                    state="complete",
+                    expanded=False,
+                )
                 st.markdown(result.answer)
                 if result.tools_used:
                     st.caption("Outils utilisés : " + ", ".join(result.tools_used))
@@ -135,6 +144,11 @@ with chat_tab:
                                 st.image(source.image_path, width=320)
                 st.session_state.messages.append({"role": "assistant", "content": result.answer})
             except Exception as exc:
+                progress_status.update(
+                    label="La génération a échoué",
+                    state="error",
+                    expanded=True,
+                )
                 st.error(f"Impossible de répondre : {exc}")
                 st.exception(exc)
 

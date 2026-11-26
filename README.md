@@ -43,8 +43,8 @@ ollama pull qwen2.5vl:7b
 ollama pull qwen3.5:9b
 ```
 
-Le projet exige Python 3.11 ou plus récent. `uv` installe automatiquement une version compatible,
-même si le Python système est plus ancien.
+Le projet utilise Python 3.12, fixé dans `.python-version`. `uv` utilise automatiquement cette
+version même si le Python système est différent.
 
 ## Installation et lancement
 
@@ -297,6 +297,9 @@ Maintidoc/
 | `OLLAMA_EMBED_MODEL` | `bge-m3:latest` | embeddings texte/tableaux |
 | `OLLAMA_VISION_MODEL` | `qwen2.5vl:7b` | description optionnelle des images |
 | `OLLAMA_AGENT_MODEL` | `qwen3.5:9b` | raisonnement et appels d'outils |
+| `OLLAMA_AGENT_REASONING` | `false` | désactive le raisonnement long pour l'interface |
+| `OLLAMA_AGENT_NUM_PREDICT` | `700` | longueur maximale de la réponse de l'agent |
+| `OLLAMA_AGENT_TIMEOUT` | `180` | délai maximal d'un appel Ollama, en secondes |
 | `CLIP_MODEL` | `openai/clip-vit-base-patch32` | embeddings texte-image |
 | `QDRANT_URL` | vide | serveur Qdrant ; vide = stockage local |
 | `TEXT_TOP_K` | `5` | passages textuels récupérés |

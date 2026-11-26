@@ -1,6 +1,6 @@
 [build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
+requires = ["setuptools>=75"]
+build-backend = "setuptools.build_meta"
 
 [project]
 name = "maintidoc"
@@ -36,8 +36,8 @@ dev = [
 maintidoc-index = "maintidoc.cli:index_main"
 maintidoc-ask = "maintidoc.cli:ask_main"
 
-[tool.hatch.build.targets.wheel]
-packages = ["src/maintidoc"]
+[tool.setuptools.packages.find]
+where = ["src"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

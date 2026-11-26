@@ -25,7 +25,7 @@ def document_id_for(path: Path) -> str:
 
 def table_to_markdown(table: list[list[object | None]]) -> str:
     rows = [[str(cell or "").replace("\n", " ").strip() for cell in row] for row in table]
-    if not rows or not any(any(cell for cell in row) for row in rows):
+    if len(rows) < 2 or not any(any(cell for cell in row) for row in rows):
         return ""
     width = max(len(row) for row in rows)
     rows = [row + [""] * (width - len(row)) for row in rows]
@@ -105,9 +105,14 @@ class MultimodalPDFExtractor:
 
     def _extract_tables(self, path: Path, doc_id: str) -> list[DocumentElement]:
         elements: list[DocumentElement] = []
-        with pdfplumber.open(path) as pdf:
-            for page_number, page in enumerate(pdf.pages, start=1):
-                for table_index, table in enumerate(page.extract_tables() or [], start=1):
+        with pymupdf.open(path) as pymupdf_document, pdfplumber.open(path) as pdfplumber_document:
+            for page_number, page in enumerate(pymupdf_document, start=1):
+                detected_tables = [table.extract() for table in page.find_tables().tables]
+                if not detected_tables:
+                    detected_tables = (
+                        pdfplumber_document.pages[page_number - 1].extract_tables() or []
+                    )
+                for table_index, table in enumerate(detected_tables, start=1):
                     markdown = table_to_markdown(table)
                     if len(markdown) < 20:
                         continue

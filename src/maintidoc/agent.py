@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from collections.abc import Callable
 
 from langchain.agents import create_agent
 from langchain_core.messages import ToolMessage
@@ -57,6 +58,11 @@ class DocumentAgent:
             model=config.agent_model,
             base_url=config.ollama_base_url,
             temperature=0,
+            reasoning=config.agent_reasoning,
+            num_predict=config.agent_num_predict,
+            num_ctx=8192,
+            keep_alive="10m",
+            client_kwargs={"timeout": config.agent_timeout},
         )
         self.graph = create_agent(
             model=model,
@@ -64,12 +70,29 @@ class DocumentAgent:
             system_prompt=SYSTEM_PROMPT,
         )
 
-    def ask(self, question: str) -> AgentAnswer:
-        result = self.graph.invoke(
+    def ask(
+        self,
+        question: str,
+        progress: Callable[[str], None] | None = None,
+    ) -> AgentAnswer:
+        last_state = None
+        for state in self.graph.stream(
             {"messages": [{"role": "user", "content": question}]},
             config={"recursion_limit": 12},
-        )
-        messages = result["messages"]
+            stream_mode="values",
+        ):
+            last_state = state
+            last_message = state["messages"][-1]
+            tool_calls = getattr(last_message, "tool_calls", None)
+            if progress and tool_calls:
+                tool_names = ", ".join(call.get("name", "outil") for call in tool_calls)
+                progress(f"Outils sélectionnés : {tool_names}")
+            elif progress and isinstance(last_message, ToolMessage):
+                progress(f"Sources récupérées avec {last_message.name}; génération de la réponse…")
+
+        if last_state is None:
+            raise RuntimeError("L'agent n'a produit aucun résultat.")
+        messages = last_state["messages"]
         sources: dict[str, SearchHit] = {}
         tools_used: list[str] = []
         for message in messages:
